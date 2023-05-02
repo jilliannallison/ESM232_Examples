@@ -15,11 +15,12 @@ library(ggpubr)
 Run Solar Model with Data
 
 ```{r solar}
-source("../R/solarpv.R")
+
+source("R/solarpv.R")
 solarpv
 
 # read in R formatted data
-load("../Data/sierraczosolar.rda")
+load("Data/sierraczosolar.rda")
 
 # already in the format required for the model
 head(sierraczosolar)

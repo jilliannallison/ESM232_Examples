@@ -27,11 +27,11 @@ library(ggpubr)
 
 
 ```{r solar}
-source("../R/solarpv.R")
+source("R/solarpv.R")
 
 
 # read in R formatted data
-load("../Data/sierraczosolar.rda")
+load("Data/sierraczosolar.rda")
 
 # lets room the first year since we know from last class that it is incomplete
 
@@ -67,7 +67,7 @@ site2 = ethresh %>% map(~solarpv( area=0.1,
 
 
 # extract a useful data structure,lets say we want # just the annual data (not the mean), and then reformat as a data frame with nice column names
-tmp = map_df(site2,`[`, c("annual")) 
+tmp = map_df(site2,`[`, c("annual"))  # Extracting from a list , note the bracket 
 site2df = data.frame(year = tmp$annual$year, 
                      elect= tmp$annual$elect)
 
