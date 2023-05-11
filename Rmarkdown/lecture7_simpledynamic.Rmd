@@ -97,7 +97,7 @@ Implement population growth as a derivative - a model of population change
 ```{r derivaties, echo=TRUE}
 
 # note that we include time here but we don't use it; we will need this later
-source("../R/dexppop.R")
+source("R/dexppop.R")
 
 dexppop
 # see how it works
@@ -139,7 +139,7 @@ Two options
 # Explicit Solution is available
 
 ```{r explicit}
-source("../R/exppop.R")
+source("R/exppop.R")
 
 exppop
 

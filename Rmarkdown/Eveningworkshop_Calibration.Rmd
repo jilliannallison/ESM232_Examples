@@ -33,7 +33,7 @@ from a hydrologic model applied to a Sierra watershed
 
 ```{r simple}
 
-sager = read.table("../Data/sager.txt", header=T)
+sager = read.table("Data/sager.txt", header=T)
 head(sager)
 
 # add date
@@ -65,11 +65,11 @@ ggplot(sager, aes(obs, model))+geom_point()+geom_abline(intercept=0, slope=1, co
 ```{r}
 
 
-source("../R/nse.R")
+source("R/nse.R")
 
-source("../R/relerr.R")
+source("R/relerr.R")
 
-source("../R/cper.R")
+source("R/cper.R")
 
 nse
 relerr
@@ -111,6 +111,8 @@ cor(sager_aug$model, sager_aug$obs)
 
 ```
 
+
+
 # In Class Exercise
 
 * Read in the *sager.txt* data
@@ -129,7 +131,7 @@ cor(sager_aug$model, sager_aug$obs)
 ```{r multimetric}
 
 # turn your evaluation metric into a function
-source("../R/compute_lowflowmetrics.R")
+source("R/compute_lowflowmetrics.R")
 compute_lowflowmetrics
 
 compute_lowflowmetrics(m=sager$model,o=sager$obs, month=sager$month, day=sager$day, year=sager$year, wy=sager$wy)
@@ -184,7 +186,7 @@ perf = perf %>% mutate(combined2 = 0.1*annual_min_cor + 0.1*annual_min_err_trans
 perf
 
 # easier to put all this in a function
-source("../R/compute_lowflowmetrics_all.R")
+source("R/compute_lowflowmetrics_all.R")
 
 compute_lowflowmetrics_all
 
@@ -199,8 +201,11 @@ compute_lowflowmetrics_all
     
 ```{r your_turn_part1}
 # add your code here (or start new file if you want)
+source("R/performance_metric.R")
 
+flow_5year(sager$model, sager$obs, sager$wy, 1990)
 ```
+
 
 # Calibration
 
@@ -234,7 +239,7 @@ Some code to help organize things
 
 # multiple results - lets say we've run the model for multiple years, 
 #each column  is streamflow for a different parameter set
-msage = read.table("../Data/sagerm.txt", header=T)
+msage = read.table("Data/sagerm.txt", header=T)
 
 # keep track of number of simulations (e.g results for each parameter set) 
 # use as a column names
@@ -276,7 +281,7 @@ head(res)
 
 # another example using our low flow statistics
 # use apply to compute for all the data
-source("../R/compute_lowflowmetrics_all.R")
+source("R/compute_lowflowmetrics_all.R")
 res = short_msage %>% select(-date, -month, -day, -year, -wy, -obs ) %>%
   map_df(compute_lowflowmetrics_all, o=short_msage$obs, month=short_msage$month, day=short_msage$day, year=short_msage$year, wy=short_msage$wy)
 # note here we use map_df to get a dataframe back 

@@ -137,7 +137,7 @@ Lets look at our almond yield example
 ```{r LHS}
 # for formal sensitivity analysis it is useful to describe output in
 # several summary statistics - how about mean, max and min yield
-source("../R/compute_almond_yield.R")
+source("R/compute_almond_yield.R")
 
 
 # set a random seed to make things 'random'
@@ -188,7 +188,6 @@ head(parm)
 * We can use **pmap** to efficiently run our model for all of our parameter sets
 
 but first
-
 # Examining Output
 
 Sensitivity of What?
@@ -217,7 +216,7 @@ Which one depends on what you care about
 
 
 # read in the input data
-SB=read.table("../data/clim.txt", header=T)
+SB=read.table("data/clim.txt", header=T)
 clim= SB
 
 
