@@ -1,0 +1,144 @@
+---
+title: "EDS230/ESM232 Assignment 3: Informal Sensitivity Analysis"
+date: "Spring 2023"
+output: html_document
+---
+
+### instructions 
+
++ Develop a profit model for your almond yield (you can make this up - think about what the parameters would be)
+
+    * you might assume a baseline profit and then adjust according to the anomaly  
+
+    * there are many ways to combine the almond yield and profit functions; you can have the profit function "call"/use the almond yield function; or create a wrapper function that calls them in sequence (first the almond yield and then the profit function) 
+
++ Do a simple informal sensitivity analysis of almond yield profit using at least 2 parameters
+
++ Create a single graph of the results - you can decide what is the most meaningful graph 
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source("almond_model.R")
+library(tidyverse)
+
+```
+
+### step 1: profit model 
+
+1. Develop a profit model for your almond yield (you can make this up - think about what the parameters would be)
+
+```{r load_functions}
+
+## creating profit function here 
+## NPV formula - accounting for time value of money 
+## assuming time is by the year
+## value is going to be yield 
+## rate is $/yield
+
+compute_NPV = function(rate=1, value, time, discount=0.12) {
+	result = rate*value / (1 + discount)**time
+	return(result)
+}
+
+# load almond yield function
+source("almond_model.R")
+
+# here is what my almond yield function looks like 
+almond_model
+
+```
+
+### step 2: informal sensitivity analysis 
+ 
+2. Do a simple informal sensitivity analysis of total almond yield profit using at least 2 parameters
+
+In this step, I use a wrapper function to combine the two functions for almond yield and for calculating NPV, and then take a summary statistic. 
+
+```{r sa}
+climdf <- read.csv("../clim.csv", sep=" ")
+
+# format input data 
+temp = climdf %>% 
+  group_by(month, year) %>% 
+  summarize_at(vars(tmin_c), list(mean)) %>% 
+  dplyr::filter(month==2)
+
+pre = climdf %>% group_by(month, year) %>% 
+  summarize_at(vars(precip), list(sum)) %>% 
+  dplyr::filter(month==1)
+
+# set up the sensitivity parameters
+
+# r is the rate in my NPV function
+r = rnorm(50, mean=2, sd=0.5)
+# int is the intercept in the almond yield equation 
+int = rnorm(50, mean=0.28, sd=0.1)
+
+# create data frame with both parameters, nrow = 50, so will run the model 50 times 
+parms = data.frame(r, int)
+
+# here is my wrapper function: it will use each row in my 'parms' dataframe and do the following:
+# 1) get almond yield, output for each year  
+# 2) convert yield to profit for each year 
+# 3) get summary statistic - in this example I am taking the total amount of profit made over the entire time period 
+wrapper <- function(r, int){
+  yield = almond_model(Tn_2=temp$tmin_c, P_1=pre$precip, intercept = int)
+  dollars = compute_NPV(value=yield$yields, rate=r, time=seq(1:length(yield$yields)))
+  total_profit = sum(dollars)
+  
+  return(total_profit)
+}
+
+# this is similar to doing a for loop, except now I am going to use 'pmap' to run the wrapper 
+sa_parms <- pmap(parms, wrapper)
+
+# unlist the 'pmap' results 
+profit_results <- data.frame(net_profit=unlist(sa_parms))
+
+summary(profit_results)
+```
+
+What if we want to do the same thing but with a for loop? 
+```{r looping}
+
+total_profit = vector(length=50)
+
+for(i in 1:nrow(parms)){
+  yield = almond_model(Tn_2=temp$tmin_c, P_1=pre$precip, 
+                       intercept = parms$int[i])
+  dollars = compute_NPV(value=yield$yields, rate=parms$r[i], time=seq(1:length(yield$yields)))
+  total_profit[i] = sum(dollars)
+}
+
+summary(total_profit)
+
+```
+
+### step 3: visualize results
+
+3. Create a single graph of the results - you can decide what is the most meaningful graph 
+
+Here you can start simple and just explore results, these are all of examples of visualizing the range of the output.
+
+```{r plot_results}
+
+ggplot(profit_results) + geom_histogram(aes(x=net_profit))
+ggplot(profit_results) + geom_density(aes(x=net_profit))
+ggplot(profit_results) + geom_boxplot(aes(y=net_profit))
+
+```
+
+We can also plot the results and how they relate to the parameters we varied
+
+```{r plot_parms}
+
+# combine parms dataframe with results
+# using pivot longer so that plot can use facet_grid 
+all_results = cbind(profit_results, parms) %>% 
+  pivot_longer(cols=c(r, int))
+
+ggplot(all_results) + geom_point(aes(x=value, y=net_profit)) + facet_wrap('name', scales="free")
+
+
+```
